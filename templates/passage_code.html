@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Start Skill Test</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f4f6fb;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.box{
+background:white;
+padding:40px;
+border-radius:8px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+text-align:center;
+width:350px;
+}
+
+input{
+width:100%;
+padding:10px;
+font-size:16px;
+margin-top:10px;
+margin-bottom:20px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+background:#2d5be3;
+color:white;
+border:none;
+padding:10px 20px;
+font-size:16px;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#1f46b5;
+}
+
+.error{
+color:red;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Start Skill Test</h2>
+
+<form method="POST" action="/start">
+
+<input type="text" name="code" placeholder="Enter Passage Code" required>
+
+<button type="submit">Start Test</button>
+
+</form>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+</div>
+
+</body>
+</html>
