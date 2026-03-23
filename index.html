@@ -1,6 +1,837 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>STENO PLATFORM</title>  
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DT-STENO — Stenography Institute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'DM Sans',sans-serif;background:#080c1a;color:#f1f5f9;min-height:100vh;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit}
+
+/* ── DESIGN TOKENS ── */
+:root{
+  --navy:   #080c1a;
+  --navy2:  #0f1526;
+  --navy3:  #182038;
+  --navy4:  #232e47;
+  --gold:   #f0a500;
+  --gold2:  #f5be3d;
+  --gold3:  rgba(240,165,0,.12);
+  --gold4:  rgba(240,165,0,.2);
+  --text:   #f1f5f9;
+  --text2:  #94a3b8;
+  --text3:  #475569;
+  --line:   rgba(255,255,255,.08);
+  --line2:  rgba(255,255,255,.13);
+  --pass:   #4ade80;
+  --fail:   #f87171;
+  --warn:   #fbbf24;
+  --blue:   #60a5fa;
+  --r:8px; --r2:12px; --r3:18px; --r4:24px;
+}
+
+/* ═══════════════════════════════════════
+   VIEWS (SPA routing)
+═══════════════════════════════════════ */
+.view{display:none;animation:fadeIn .25s ease}
+.view.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ═══════════════════════════════════════
+   NAV
+═══════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:62px;padding:0 6vw;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(8,12,26,.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--line);
+  transition:box-shadow .3s;
+}
+.nav-logo{display:flex;align-items:center;gap:11px;cursor:pointer}
+.logo-badge{
+  width:36px;height:36px;border-radius:10px;background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#080c1a;
+  flex-shrink:0;
+}
+.logo-text{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);letter-spacing:-.2px}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:14px;color:var(--text2);transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{display:flex;gap:10px}
+.btn-ghost-nav{padding:8px 18px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--text2);background:transparent;border:1px solid var(--line2);transition:all .2s}
+.btn-ghost-nav:hover{border-color:var(--gold);color:var(--gold)}
+.btn-gold-nav{padding:8px 18px;border-radius:var(--r);font-size:13px;font-weight:600;color:#080c1a;background:var(--gold);border:none;transition:all .2s}
+.btn-gold-nav:hover{background:var(--gold2)}
+
+/* ═══════════════════════════════════════
+   LANDING
+═══════════════════════════════════════ */
+#landing{
+  flex-direction:column;min-height:100vh;
+  background:var(--navy);
+}
+.hero{
+  flex:1;display:flex;align-items:center;
+  padding:100px 6vw 60px;min-height:100vh;
+  position:relative;overflow:hidden;
+}
+.hero-glow1{position:absolute;top:-5%;right:-5%;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(240,165,0,.07) 0%,transparent 65%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-10%;left:-10%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(46,93,230,.05) 0%,transparent 65%);pointer-events:none}
+.hero-inner{max-width:1160px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;padding:5px 13px;border-radius:999px;background:var(--gold3);border:1px solid var(--gold4);font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px}
+.tag-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:'DM Serif Display',serif;font-size:clamp(36px,4.5vw,58px);line-height:1.07;letter-spacing:-.5px;margin-bottom:20px}
+h1 .g{color:var(--gold)}
+h1 em{font-style:italic}
+.hero-desc{font-size:16px;color:var(--text2);line-height:1.75;max-width:480px;margin-bottom:34px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:44px}
+.btn-hero-primary{padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;color:#080c1a;background:var(--gold);border:none;display:inline-flex;align-items:center;gap:8px;transition:all .25s}
+.btn-hero-primary:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 10px 28px rgba(240,165,0,.25)}
+.btn-hero-outline{padding:14px 28px;border-radius:10px;font-size:15px;color:var(--text2);background:transparent;border:1px solid var(--line2);transition:all .2s}
+.btn-hero-outline:hover{border-color:rgba(255,255,255,.25);color:var(--text)}
+.hero-stats{display:flex;gap:36px}
+.hstat{}.hstat-n{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);line-height:1}
+.hstat-l{font-size:12px;color:var(--text3);margin-top:3px}
+.hstat-sep{width:1px;background:var(--line)}
+
+/* mock card */
+.mock{background:var(--navy2);border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.55);position:relative}
+.mock-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.mock-pill{display:flex;align-items:center;gap:6px;padding:4px 12px;background:var(--gold3);border:1px solid var(--gold4);border-radius:999px;font-size:11px;font-weight:600;color:var(--gold)}
+.mock-timer{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--gold)}
+.mock-passage{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:2;color:var(--text2);margin-bottom:16px;border-left:2px solid var(--gold4);padding-left:13px}
+.hl-f{background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.35);border-radius:4px;padding:0 4px;color:#fca5a5;font-size:.92em}
+.hl-h{background:rgba(251,146,60,.18);border:1px solid rgba(251,146,60,.35);border-radius:4px;padding:0 4px;color:#fdba74;font-size:.92em}
+.mock-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px}
+.ms{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:7px;padding:8px;text-align:center}
+.ms-l{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3)}
+.ms-v{font-family:'DM Serif Display',serif;font-size:20px;margin-top:2px}
+.mock-bottom{display:flex;align-items:center;justify-content:space-between}
+.mock-verdict{font-family:'DM Serif Display',serif;font-size:22px;color:var(--pass)}
+.mock-err{font-size:13px;color:var(--text2)}
+.mock-err b{color:var(--gold)}
+
+/* float cards */
+.fc{position:absolute;background:var(--navy3);border:1px solid var(--line);border-radius:11px;padding:11px 15px;font-size:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);animation:float 4s ease-in-out infinite}
+.fc1{top:-22px;right:-24px}
+.fc2{bottom:-22px;left:-24px;animation-delay:2s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.fc-l{color:var(--text3);margin-bottom:3px}
+.fc-v{font-family:'DM Serif Display',serif;font-size:17px}
+
+/* features */
+.features{padding:80px 6vw;background:var(--navy2);border-top:1px solid var(--line)}
+.features-inner{max-width:1160px;margin:0 auto}
+.sec-eyebrow{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.sec-title{font-family:'DM Serif Display',serif;font-size:clamp(28px,3.5vw,42px);line-height:1.1;margin-bottom:14px}
+.sec-sub{font-size:15px;color:var(--text2);max-width:520px;line-height:1.7;margin-bottom:48px}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+.feat-card{background:var(--navy3);border:1px solid var(--line);border-radius:16px;padding:26px;transition:border-color .25s,transform .25s}
+.feat-card:hover{border-color:var(--gold4);transform:translateY(-3px)}
+.feat-icon{width:46px;height:46px;border-radius:11px;background:var(--gold3);border:1px solid var(--gold4);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feat-icon svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:1.8}
+.feat-title{font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:7px}
+.feat-desc{font-size:13.5px;color:var(--text2);line-height:1.65}
+
+/* how it works */
+.hiw{padding:80px 6vw;border-top:1px solid var(--line)}
+.hiw-inner{max-width:1160px;margin:0 auto}
+.hiw-steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:28px;margin-top:48px}
+.hiw-step{text-align:center}
+.step-num{width:50px;height:50px;border-radius:50%;background:var(--gold3);border:2px solid var(--gold4);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:22px;color:var(--gold);margin:0 auto 14px}
+.step-title{font-family:'DM Serif Display',serif;font-size:16px;margin-bottom:7px}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* categories */
+.cats{padding:80px 6vw;background:var(--navy2);border-top:1px solid var(--line)}
+.cats-inner{max-width:1160px;margin:0 auto}
+.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px;margin-top:36px}
+.cat-card{background:var(--navy3);border:1px solid var(--line);border-radius:13px;padding:20px;text-align:center;transition:all .22s}
+.cat-card:hover{transform:translateY(-3px)}
+.cat-emoji{font-size:26px;margin-bottom:10px}
+.cat-name{font-family:'DM Serif Display',serif;font-size:15px;margin-bottom:4px}
+.cat-desc{font-size:12px;color:var(--text3)}
+
+/* cta */
+.cta{padding:80px 6vw;text-align:center;position:relative;overflow:hidden;border-top:1px solid var(--line)}
+.cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(240,165,0,.07) 0%,transparent 65%);pointer-events:none}
+.cta-title{font-family:'DM Serif Display',serif;font-size:clamp(28px,4vw,46px);margin-bottom:14px;position:relative}
+.cta-sub{font-size:15px;color:var(--text2);margin-bottom:32px;max-width:440px;margin-left:auto;margin-right:auto;position:relative}
+
+/* footer */
+footer{padding:28px 6vw;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;background:var(--navy2)}
+.foot-copy{font-size:13px;color:var(--text3)}
+.foot-links{display:flex;gap:22px}
+.foot-links a{font-size:13px;color:var(--text3);transition:color .2s}
+.foot-links a:hover{color:var(--gold)}
+
+/* ═══════════════════════════════════════
+   AUTH PAGES (shared layout)
+═══════════════════════════════════════ */
+.auth-page{
+  min-height:100vh;align-items:center;justify-content:center;
+  padding:24px;flex-direction:column;
+  background:var(--navy);
+  background-image:radial-gradient(ellipse 65% 55% at 20% 50%,rgba(240,165,0,.06) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 65% at 82% 40%,rgba(46,93,230,.05) 0%,transparent 55%);
+}
+.auth-wrap{width:100%;max-width:430px}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-badge{width:52px;height:52px;border-radius:14px;background:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#080c1a;margin-bottom:13px}
+.auth-logo-name{display:block;font-family:'DM Serif Display',serif;font-size:25px;color:var(--text)}
+.auth-logo-sub{display:block;font-size:11px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-top:3px}
+.auth-card{background:var(--navy2);border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 28px 80px rgba(0,0,0,.6)}
+.auth-title{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:5px}
+.auth-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.55}
+
+/* form */
+.fg{margin-bottom:15px}
+.fl{display:block;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.ir{position:relative}
+.ii{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex}
+.ii svg{width:15px;height:15px;stroke:var(--text3);fill:none;stroke-width:1.8}
+.fi{width:100%;padding:11px 14px 11px 38px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+.fi:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,165,0,.1)}
+.fi::placeholder{color:var(--text3)}
+.pw-btn{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);display:flex;padding:4px;transition:color .2s}
+.pw-btn:hover{color:var(--text2)}
+.pw-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* strength bar */
+.str-bar{height:3px;border-radius:999px;background:rgba(255,255,255,.07);margin-top:5px;overflow:hidden}
+.str-fill{height:100%;border-radius:999px;transition:width .3s,background .3s;width:0}
+
+/* form grid */
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+.alert{display:none;align-items:flex-start;gap:9px;padding:11px 14px;border-radius:9px;font-size:13px;margin-bottom:14px;line-height:1.45}
+.alert.err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--fail)}
+.alert.suc{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--pass)}
+.alert.show{display:flex}
+.alert svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+
+/* callout */
+.callout{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--gold3);border:1px solid var(--gold4);border-radius:9px;margin-bottom:20px;font-size:13px;color:var(--text2);line-height:1.5}
+.callout svg{width:15px;height:15px;stroke:var(--gold);fill:none;stroke-width:1.8;flex-shrink:0;margin-top:1px}
+.callout b{color:var(--gold)}
+
+/* buttons */
+.btn{width:100%;padding:12px;border-radius:9px;border:none;font-size:14px;font-weight:600;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;margin-top:6px}
+.btn-gold{background:var(--gold);color:#080c1a}
+.btn-gold:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-gold:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-outline-nav{background:transparent;color:var(--text2);border:1px solid var(--line2);margin-top:10px}
+.btn-outline-nav:hover{border-color:var(--line2);color:var(--text)}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0 4px}
+.div-l{flex:1;height:1px;background:var(--line)}
+.div-t{font-size:12px;color:var(--text3)}
+.auth-foot{text-align:center;margin-top:16px;font-size:13px;color:var(--text3)}
+.auth-foot a{color:var(--gold)}
+.auth-foot a:hover{text-decoration:underline}
+
+/* success state */
+.suc-view{display:none;text-align:center;padding:16px 0}
+.suc-icon{width:62px;height:62px;border-radius:50%;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.suc-icon svg{width:26px;height:26px;stroke:var(--pass);fill:none;stroke-width:2}
+.suc-title{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:8px}
+.suc-msg{font-size:13px;color:var(--text2);line-height:1.65}
+
+/* spinner */
+.spin{width:17px;height:17px;border:2px solid rgba(8,12,26,.2);border-top-color:#080c1a;border-radius:50%;animation:sp .65s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════════
+   ADMIN LOGIN (light)
+═══════════════════════════════════════ */
+#adminLogin{
+  background:#f0f2f8;
+  background-image:none;
+}
+#adminLogin .auth-card{background:#fff;border-color:#e2e6f0;box-shadow:0 4px 28px rgba(0,0,0,.08)}
+#adminLogin .auth-logo-name{color:#0e1220}
+#adminLogin .auth-title{color:#0e1220}
+#adminLogin .auth-sub{color:#6b7280}
+#adminLogin .fl{color:#6b7280}
+#adminLogin .fi{background:#f8fafc;color:#0e1220;border-color:#e2e6f0}
+#adminLogin .fi:focus{border-color:#2e5de6;box-shadow:0 0 0 3px rgba(46,93,230,.08)}
+#adminLogin .fi::placeholder{color:#9ca3af}
+#adminLogin .auth-logo-sub{color:#9ca3af}
+#adminLogin .alert.err{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.15);color:#dc2626}
+#adminLogin .btn-gold{background:#2e5de6;color:#fff}
+#adminLogin .btn-gold:hover{background:#1a3db8}
+#adminLogin .btn-outline-nav{color:#374151;border-color:#e2e6f0}
+#adminLogin .auth-foot{color:#6b7280}
+#adminLogin .auth-foot a{color:#2e5de6}
+#adminLogin .auth-logo-badge{background:#0e1220;color:var(--gold)}
+#adminLogin .ii svg{stroke:#9ca3af}
+#adminLogin .pw-btn{color:#9ca3af}
+#adminLogin .auth-foot{color:#6b7280}
+#adminLogin .divider .div-l{background:#e2e6f0}
+#adminLogin .div-t{color:#9ca3af}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:768px){
+  .hero-inner{grid-template-columns:1fr;gap:44px}
+  .fc{display:none}
+  .nav-links{display:none}
+  .hero-stats{gap:20px}
+  .form-row2{grid-template-columns:1fr}
+}
+</style>
 </head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav id="mainNav">
+  <div class="nav-logo" onclick="showView('landing')">
+    <div class="logo-badge">DT</div>
+    <span class="logo-text">DT-STENO</span>
+  </div>
+  <div class="nav-links">
+    <a href="#features" onclick="goAnchor('features')">Features</a>
+    <a href="#how" onclick="goAnchor('how')">How it works</a>
+    <a href="#categories" onclick="goAnchor('categories')">Categories</a>
+  </div>
+  <div class="nav-cta">
+    <button class="btn-ghost-nav" onclick="showView('studentLogin')">Log in</button>
+    <button class="btn-gold-nav" onclick="showView('studentRegister')">Register</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════ -->
+<div class="view active" id="landing" style="flex-direction:column">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow1"></div>
+    <div class="hero-glow2"></div>
+    <div class="hero-inner">
+      <!-- Left -->
+      <div>
+        <div class="hero-tag">
+          <span class="tag-dot"></span>
+          Private Steno Institute
+        </div>
+        <h1>Master<br><em>stenography</em><br>the <span class="g">smart way</span></h1>
+        <p class="hero-desc">Practice KC passages, TN DOTE dictations and Pitman lessons with real-time error analysis. Built for serious students who want results.</p>
+        <div class="hero-actions">
+          <button class="btn-hero-primary" onclick="showView('studentRegister')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Start Practising
+          </button>
+          <button class="btn-hero-outline" onclick="showView('studentLogin')">Already enrolled?</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="hstat-n">KC</div><div class="hstat-l">Passages</div></div>
+          <div class="hstat-sep"></div>
+          <div class="hstat"><div class="hstat-n">TN&nbsp;DOTE</div><div class="hstat-l">Dictations</div></div>
+          <div class="hstat-sep"></div>
+          <div class="hstat"><div class="hstat-n">5%</div><div class="hstat-l">Pass threshold</div></div>
+        </div>
+      </div>
+
+      <!-- Right — mock card -->
+      <div style="position:relative">
+        <div class="fc fc1">
+          <div class="fc-l">Today's streak</div>
+          <div class="fc-v" style="color:var(--gold)">7 days 🔥</div>
+        </div>
+        <div class="fc fc2">
+          <div class="fc-l">Best this week</div>
+          <div class="fc-v" style="color:var(--pass)">3.2% error</div>
+        </div>
+        <div class="mock">
+          <div class="mock-top">
+            <div class="mock-pill">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Weekly Test
+            </div>
+            <div class="mock-timer">04:32</div>
+          </div>
+          <div class="mock-passage">Members of Parliament I <span class="hl-f">nine (9)</span> months ago I welcomed you as <span class="hl-h">member (Members)</span> of the first Parliament of the Republic…</div>
+          <div class="mock-scores">
+            <div class="ms"><div class="ms-l">Full</div><div class="ms-v" style="color:var(--fail)">4</div></div>
+            <div class="ms"><div class="ms-l">Half</div><div class="ms-v" style="color:#fb923c">6</div></div>
+            <div class="ms"><div class="ms-l">Omit</div><div class="ms-v">2</div></div>
+            <div class="ms"><div class="ms-l">WPM</div><div class="ms-v" style="color:var(--gold)">98</div></div>
+          </div>
+          <div class="mock-bottom">
+            <div class="mock-verdict">PASS ✓</div>
+            <div class="mock-err">Error: <b>4.8%</b> of 187 words</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="features-inner">
+      <div class="sec-eyebrow">Platform features</div>
+      <h2 class="sec-title">Everything you need to <em>excel</em></h2>
+      <p class="sec-sub">A focused platform for serious steno students — no clutter, just tools that matter.</p>
+      <div class="feat-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+          <div class="feat-title">Real-time Error Analysis</div>
+          <div class="feat-desc">Full, half, omissions, extra words, capitalisation and full stop errors — each counted separately with colour-coded highlights.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></div>
+          <div class="feat-title">Audio Dictation Tests</div>
+          <div class="feat-desc">Weekly surprise tests with real audio. Listen on your phone, type on your PC — both work seamlessly together.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+          <div class="feat-title">Progress Tracking</div>
+          <div class="feat-desc">Track your error %, WPM and pass rate over time. See exactly where you're improving month by month.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="feat-title">Monthly Leaderboard</div>
+          <div class="feat-desc">See how you rank against your batchmates every month. Healthy competition drives consistent practice.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+          <div class="feat-title">Passage Library</div>
+          <div class="feat-desc">KC, TN DOTE, Pitman and general passages — all organised by category and speed in one library.</div>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <div class="feat-title">Instructor Correction</div>
+          <div class="feat-desc">Auto-evaluation gives instant results. Your instructor can review and override any score — human judgement plus automation.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="hiw" id="how">
+    <div class="hiw-inner">
+      <div class="sec-eyebrow">Simple workflow</div>
+      <h2 class="sec-title">From homework to result in minutes</h2>
+      <div class="hiw-steps">
+        <div class="hiw-step">
+          <div class="step-num">1</div>
+          <div class="step-title">Get your homework</div>
+          <div class="step-desc">Your instructor sends a passage + audio link via WhatsApp. Practice the shorthand at home.</div>
+        </div>
+        <div class="hiw-step">
+          <div class="step-num">2</div>
+          <div class="step-title">Listen & transcribe</div>
+          <div class="step-desc">Open the platform, enter the test code, play audio on your phone, type your transcription on PC.</div>
+        </div>
+        <div class="hiw-step">
+          <div class="step-num">3</div>
+          <div class="step-title">Instant evaluation</div>
+          <div class="step-desc">Submit and get an instant annotated result — every mistake highlighted and counted by type.</div>
+        </div>
+        <div class="hiw-step">
+          <div class="step-num">4</div>
+          <div class="step-title">Instructor review</div>
+          <div class="step-desc">Your instructor reviews the result, corrects if needed, and tracks your progress over time.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="cats" id="categories">
+    <div class="cats-inner">
+      <div class="sec-eyebrow">Passage categories</div>
+      <h2 class="sec-title">Structured for every level</h2>
+      <div class="cats-grid">
+        <div class="cat-card" style="border-color:rgba(96,165,250,.2)">
+          <div class="cat-emoji">📋</div>
+          <div class="cat-name">KC Passages</div>
+          <div class="cat-desc">Kailash Chandra standard passages</div>
+        </div>
+        <div class="cat-card" style="border-color:rgba(74,222,128,.2)">
+          <div class="cat-emoji">🎯</div>
+          <div class="cat-name">TN DOTE</div>
+          <div class="cat-desc">Tamil Nadu DOTE official passages</div>
+        </div>
+        <div class="cat-card" style="border-color:rgba(192,132,252,.2)">
+          <div class="cat-emoji">📚</div>
+          <div class="cat-name">Pitman Basic</div>
+          <div class="cat-desc">Beginner through advanced lessons</div>
+        </div>
+        <div class="cat-card" style="border-color:rgba(240,165,0,.2)">
+          <div class="cat-emoji">🗂️</div>
+          <div class="cat-name">General</div>
+          <div class="cat-desc">Mixed topics and exam prep</div>
+        </div>
+        <div class="cat-card" style="border-color:rgba(251,146,60,.2)">
+          <div class="cat-emoji">⚖️</div>
+          <div class="cat-name">Presidential</div>
+          <div class="cat-desc">Speeches and formal dictations</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2 class="cta-title">Ready to improve?</h2>
+    <p class="cta-sub">Join with the class code from your instructor and start practising today.</p>
+    <button class="btn-hero-primary" style="display:inline-flex" onclick="showView('studentRegister')">
+      Register with class code →
+    </button>
+    <p style="font-size:12px;color:var(--text3);margin-top:14px;position:relative">Private platform — invite only</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="foot-copy">© 2025 DT-STENO. Private institute platform.</div>
+    <div class="foot-links">
+      <a onclick="showView('studentLogin')">Student Login</a>
+      <a onclick="showView('adminLogin')">Admin</a>
+    </div>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════
+     STUDENT LOGIN
+════════════════════════════════════ -->
+<div class="view auth-page" id="studentLogin">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-logo-badge">DT</div>
+      <span class="auth-logo-name">DT-STENO</span>
+      <span class="auth-logo-sub">Stenography Institute</span>
+    </div>
+    <div class="auth-card">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in with your mobile number and password</div>
+
+      <div class="alert err" id="loginErr">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="loginErrMsg">Invalid credentials</span>
+      </div>
+
+      <form id="loginForm" onsubmit="doLogin(event)">
+        <div class="fg">
+          <label class="fl">Mobile Number</label>
+          <div class="ir">
+            <span class="ii"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+            <input class="fi" type="tel" id="loginMobile" placeholder="10-digit mobile number" required autocomplete="tel">
+          </div>
+        </div>
+        <div class="fg">
+          <label class="fl">Password</label>
+          <div class="ir">
+            <span class="ii"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <input class="fi" type="password" id="loginPw" placeholder="Your password" required autocomplete="current-password">
+            <button type="button" class="pw-btn" onclick="togglePw('loginPw','lpi')">
+              <svg id="lpi" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-gold" type="submit" id="loginBtn">
+          <span id="loginBtnLabel">Sign In</span>
+        </button>
+      </form>
+
+      <div class="divider"><div class="div-l"></div><span class="div-t">New student?</span><div class="div-l"></div></div>
+      <button class="btn btn-outline-nav" onclick="showView('studentRegister')">Register with class code</button>
+    </div>
+    <div class="auth-foot">
+      <a onclick="showView('landing')" style="cursor:pointer">← Back to home</a>
+      &nbsp;·&nbsp;
+      Admin? <a onclick="showView('adminLogin')" style="cursor:pointer">Admin panel →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     STUDENT REGISTER
+════════════════════════════════════ -->
+<div class="view auth-page" id="studentRegister">
+  <div class="auth-wrap" style="max-width:470px">
+    <div class="auth-logo">
+      <div class="auth-logo-badge">DT</div>
+      <span class="auth-logo-name">DT-STENO</span>
+      <span class="auth-logo-sub">Stenography Institute</span>
+    </div>
+    <div class="auth-card">
+      <div id="regFormView">
+        <div class="auth-title">Create your account</div>
+        <div class="auth-sub">You need a class code from your instructor to register.</div>
+
+        <div class="callout">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div>Your instructor shares a <b>class code</b> via WhatsApp. Enter it below to join the batch.</div>
+        </div>
+
+        <div class="alert err" id="regErr">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+          <span id="regErrMsg">Something went wrong</span>
+        </div>
+
+        <form id="regForm" onsubmit="doRegister(event)">
+          <div class="fg">
+            <label class="fl">Full Name</label>
+            <div class="ir">
+              <span class="ii"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+              <input class="fi" type="text" id="regName" placeholder="Your full name" required autocomplete="name">
+            </div>
+          </div>
+          <div class="form-row2">
+            <div class="fg">
+              <label class="fl">Mobile Number</label>
+              <div class="ir">
+                <span class="ii"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+                <input class="fi" type="tel" id="regMobile" placeholder="10-digit number" required autocomplete="tel">
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">Class Code</label>
+              <div class="ir">
+                <span class="ii"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <input class="fi" type="text" id="regCode" placeholder="e.g. DT2024" required
+                  style="text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;font-size:12px;padding-left:38px">
+              </div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Password</label>
+            <div class="ir">
+              <span class="ii"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input class="fi" type="password" id="regPw" placeholder="Create a strong password" required autocomplete="new-password" oninput="checkStr(this.value)">
+              <button type="button" class="pw-btn" onclick="togglePw('regPw','rpi1')">
+                <svg id="rpi1" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="str-bar"><div class="str-fill" id="strFill"></div></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Confirm Password</label>
+            <div class="ir">
+              <span class="ii"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input class="fi" type="password" id="regCf" placeholder="Repeat your password" required autocomplete="new-password">
+              <button type="button" class="pw-btn" onclick="togglePw('regCf','rpi2')">
+                <svg id="rpi2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-gold" type="submit" id="regBtn">
+            <span id="regBtnLabel">Request Registration</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Success -->
+      <div class="suc-view" id="regSuccess">
+        <div class="suc-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="suc-title">Request sent!</div>
+        <p class="suc-msg">Your registration is pending instructor approval.<br>You'll be notified via WhatsApp once approved. Then you can <a onclick="showView('studentLogin')" style="color:var(--gold);cursor:pointer">sign in here</a>.</p>
+      </div>
+    </div>
+    <div class="auth-foot" id="regFooter">
+      Already registered? <a onclick="showView('studentLogin')" style="cursor:pointer">Sign in →</a>
+      &nbsp;·&nbsp;
+      <a onclick="showView('landing')" style="cursor:pointer">← Home</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     ADMIN LOGIN
+════════════════════════════════════ -->
+<div class="view auth-page" id="adminLogin">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-logo-badge">DT</div>
+      <span class="auth-logo-name">DT-STENO Admin</span>
+      <span class="auth-logo-sub">Instructor Panel</span>
+    </div>
+    <div class="auth-card">
+      <div class="auth-title">Admin Sign In</div>
+      <div class="auth-sub">Enter your admin password to access the instructor panel</div>
+
+      <div class="alert err" id="adminErr">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="adminErrMsg">Incorrect password</span>
+      </div>
+
+      <form id="adminForm" onsubmit="doAdmin(event)">
+        <div class="fg">
+          <label class="fl">Admin Password</label>
+          <div class="ir">
+            <span class="ii"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <input class="fi" type="password" id="adminPw" placeholder="Admin password" required autofocus autocomplete="current-password">
+            <button type="button" class="pw-btn" onclick="togglePw('adminPw','api')">
+              <svg id="api" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-gold" type="submit" id="adminBtn">
+          <span id="adminBtnLabel">Sign In to Admin</span>
+        </button>
+      </form>
+
+      <div class="divider"><div class="div-l"></div><span class="div-t">not an admin?</span><div class="div-l"></div></div>
+      <button class="btn btn-outline-nav" onclick="showView('studentLogin')">Student Login</button>
+    </div>
+    <div class="auth-foot">
+      <a onclick="showView('landing')" style="cursor:pointer">← Back to home</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════ -->
+<script>
+// ── CONFIG: change this to your Render.com backend URL when ready ──
+const API_BASE = '';  // e.g. 'https://dt-steno.onrender.com'
+
+// ── View routing ──────────────────────────────────────────────────
+const HIDE_NAV_ON = ['studentLogin','studentRegister','adminLogin'];
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const v=document.getElementById(id);
+  if(v) v.classList.add('active');
+  document.getElementById('mainNav').style.display = HIDE_NAV_ON.includes(id)?'none':'flex';
+  window.scrollTo(0,0);
+}
+function goAnchor(id){
+  showView('landing');
+  setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth'}),50);
+}
+
+// ── Toggle password visibility ─────────────────────────────────────
+function togglePw(inputId, iconId){
+  const i=document.getElementById(inputId);
+  const ic=document.getElementById(iconId);
+  const EYE='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  const HIDE='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  if(i.type==='password'){i.type='text';ic.innerHTML=HIDE;}
+  else{i.type='password';ic.innerHTML=EYE;}
+}
+
+// ── Password strength ──────────────────────────────────────────────
+function checkStr(pw){
+  const b=document.getElementById('strFill');
+  let s=0;
+  if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;
+  if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  const W=['0%','28%','52%','75%','100%'][s];
+  const C=['','#f87171','#fb923c','#f0a500','#4ade80'][s];
+  b.style.width=W;b.style.background=C;
+}
+
+// ── Loading state helpers ──────────────────────────────────────────
+function setLoading(btnId, labelId, loading){
+  const b=document.getElementById(btnId);
+  const l=document.getElementById(labelId);
+  b.disabled=loading;
+  l.innerHTML=loading?'<div class="spin"></div>':l.dataset.orig||l.textContent;
+}
+function showErr(boxId, msgId, msg){
+  document.getElementById(msgId).textContent=msg;
+  document.getElementById(boxId).classList.add('show');
+}
+function hideErr(boxId){document.getElementById(boxId).classList.remove('show');}
+
+// ── Student Login ──────────────────────────────────────────────────
+async function doLogin(e){
+  e.preventDefault();
+  hideErr('loginErr');
+  const mobile=document.getElementById('loginMobile').value.trim().replace(/\D/g,'');
+  const pw=document.getElementById('loginPw').value;
+  document.getElementById('loginBtnLabel').dataset.orig='Sign In';
+  setLoading('loginBtn','loginBtnLabel',true);
+  try{
+    if(API_BASE){
+      const r=await fetch(API_BASE+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier:mobile,password:pw})});
+      const d=await r.json();
+      if(d.status==='ok'){window.location.href=d.redirect||API_BASE+'/student/dashboard';}
+      else{showErr('loginErr','loginErrMsg',d.message||'Login failed');}
+    } else {
+      // Demo mode — no backend yet
+      showErr('loginErr','loginErrMsg','Backend not connected yet. Deploy on Render.com first. See README.');
+    }
+  }catch{showErr('loginErr','loginErrMsg','Connection error. Check your internet.');}
+  setLoading('loginBtn','loginBtnLabel',false);
+  document.getElementById('loginBtnLabel').textContent='Sign In';
+}
+
+// ── Student Register ───────────────────────────────────────────────
+async function doRegister(e){
+  e.preventDefault();
+  hideErr('regErr');
+  const name=document.getElementById('regName').value.trim();
+  const mobile=document.getElementById('regMobile').value.trim().replace(/\D/g,'');
+  const code=document.getElementById('regCode').value.trim().toUpperCase();
+  const pw=document.getElementById('regPw').value;
+  const cf=document.getElementById('regCf').value;
+
+  if(pw!==cf){showErr('regErr','regErrMsg','Passwords do not match.');return;}
+  if(pw.length<6){showErr('regErr','regErrMsg','Password must be at least 6 characters.');return;}
+  if(mobile.length<10){showErr('regErr','regErrMsg','Enter a valid 10-digit mobile number.');return;}
+
+  document.getElementById('regBtnLabel').dataset.orig='Request Registration';
+  setLoading('regBtn','regBtnLabel',true);
+  try{
+    if(API_BASE){
+      const r=await fetch(API_BASE+'/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mobile,class_code:code,password:pw})});
+      const d=await r.json();
+      if(d.status==='ok'){
+        document.getElementById('regFormView').style.display='none';
+        document.getElementById('regSuccess').style.display='block';
+        document.getElementById('regFooter').style.display='none';
+      } else {showErr('regErr','regErrMsg',d.message||'Registration failed');}
+    } else {
+      // Demo: show success anyway
+      document.getElementById('regFormView').style.display='none';
+      document.getElementById('regSuccess').style.display='block';
+      document.getElementById('regFooter').style.display='none';
+    }
+  }catch{showErr('regErr','regErrMsg','Connection error. Try again.');}
+  setLoading('regBtn','regBtnLabel',false);
+  document.getElementById('regBtnLabel').textContent='Request Registration';
+}
+
+// ── Admin Login ────────────────────────────────────────────────────
+async function doAdmin(e){
+  e.preventDefault();
+  hideErr('adminErr');
+  const pw=document.getElementById('adminPw').value;
+  document.getElementById('adminBtnLabel').dataset.orig='Sign In to Admin';
+  setLoading('adminBtn','adminBtnLabel',true);
+  try{
+    if(API_BASE){
+      const r=await fetch(API_BASE+'/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+      const d=await r.json();
+      if(d.status==='ok'){window.location.href=d.redirect||API_BASE+'/admin/dashboard';}
+      else{showErr('adminErr','adminErrMsg',d.message||'Incorrect password');}
+    } else {
+      showErr('adminErr','adminErrMsg','Backend not connected yet. Deploy on Render.com first.');
+    }
+  }catch{showErr('adminErr','adminErrMsg','Connection error.');}
+  setLoading('adminBtn','adminBtnLabel',false);
+  document.getElementById('adminBtnLabel').textContent='Sign In to Admin';
+}
+
+// ── Nav scroll effect ──────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('mainNav').style.boxShadow=
+    window.scrollY>20?'0 4px 24px rgba(0,0,0,.3)':'none';
+});
+</script>
+</body>
 </html>
