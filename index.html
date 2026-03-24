@@ -41,6 +41,7 @@ button{cursor:pointer;font-family:inherit}
 ═══════════════════════════════════════ */
 .view{display:none;animation:fadeIn .25s ease}
 .view.active{display:flex}
+
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ═══════════════════════════════════════
@@ -517,7 +518,7 @@ footer{padding:28px 6vw;border-top:1px solid var(--line);display:flex;align-item
       <div class="auth-title">Welcome back</div>
       <div class="auth-sub">Sign in with your mobile number and password</div>
 
-      <div class="alert err" id="loginErr">
+      <div class="alert err" id="loginErr" style="display:none">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span id="loginErrMsg">Invalid credentials</span>
       </div>
@@ -576,7 +577,7 @@ footer{padding:28px 6vw;border-top:1px solid var(--line);display:flex;align-item
           <div>Your instructor shares a <b>class code</b> via WhatsApp. Enter it below to join the batch.</div>
         </div>
 
-        <div class="alert err" id="regErr">
+        <div class="alert err" id="regErr" style="display:none">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
           <span id="regErrMsg">Something went wrong</span>
         </div>
@@ -662,7 +663,7 @@ footer{padding:28px 6vw;border-top:1px solid var(--line);display:flex;align-item
       <div class="auth-title">Admin Sign In</div>
       <div class="auth-sub">Enter your admin password to access the instructor panel</div>
 
-      <div class="alert err" id="adminErr">
+      <div class="alert err" id="adminErr" style="display:none">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span id="adminErrMsg">Incorrect password</span>
       </div>
@@ -705,9 +706,20 @@ function showView(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   const v=document.getElementById(id);
   if(v) v.classList.add('active');
-  document.getElementById('mainNav').style.display = HIDE_NAV_ON.includes(id)?'none':'flex';
+  const nav=document.getElementById('mainNav');
+  if(nav) nav.style.display = HIDE_NAV_ON.includes(id)?'none':'flex';
   window.scrollTo(0,0);
+  // Update URL hash for bookmarking
+  if(id!=='landing') history.replaceState(null,'','#'+id);
+  else history.replaceState(null,'',location.pathname);
 }
+// Handle hash on load
+window.addEventListener('DOMContentLoaded',()=>{
+  const hash = location.hash.replace('#','');
+  const valid = ['studentLogin','studentRegister','adminLogin'];
+  if(hash && valid.includes(hash)) showView(hash);
+  else showView('landing');
+});
 function goAnchor(id){
   showView('landing');
   setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth'}),50);
@@ -743,9 +755,10 @@ function setLoading(btnId, labelId, loading){
 }
 function showErr(boxId, msgId, msg){
   document.getElementById(msgId).textContent=msg;
-  document.getElementById(boxId).classList.add('show');
+  const b=document.getElementById(boxId);
+  b.style.display='flex';
 }
-function hideErr(boxId){document.getElementById(boxId).classList.remove('show');}
+function hideErr(boxId){document.getElementById(boxId).style.display='none';}
 
 // ── Student Login ──────────────────────────────────────────────────
 async function doLogin(e){
