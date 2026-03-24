@@ -19,11 +19,8 @@ with app.app_context():
 # ══════════════════════════════════════
 
 @app.route("/")
-def home():
-    return redirect(url_for("landing"))
-
 @app.route("/landing")
-def landing():
+def home():
     return render_template("index.html")
 
 # ── Student Registration ───────────────────────────────────────────
