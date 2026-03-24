@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — DT-STENO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#080c1a;--navy2:#0f1526;--navy3:#182038;--navy4:#232e47;
+  --gold:#f0a500;--gold2:#f5be3d;--gold3:rgba(240,165,0,.12);--gold4:rgba(240,165,0,.2);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --line:rgba(255,255,255,.08);--pass:#4ade80;--fail:#f87171;--r:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* layout */
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:220px;background:var(--navy2);border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:6px;z-index:100}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:12px}
+.sb-badge{width:34px;height:34px;border-radius:9px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#080c1a}
+.sb-name{font-family:'DM Serif Display',serif;font-size:17px}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);font-size:13.5px;color:var(--text2);cursor:pointer;transition:all .2s}
+.sb-link:hover,.sb-link.active{background:var(--navy3);color:var(--text)}
+.sb-link svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
+.sb-logout{margin-top:auto;color:var(--fail)}
+.main{margin-left:220px;padding:32px 36px;max-width:1100px}
+
+/* header */
+.page-header{margin-bottom:28px}
+.page-title{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text2)}
+
+/* stat cards */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{background:var(--navy2);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.stat-label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.stat-val{font-family:'DM Serif Display',serif;font-size:28px}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* section */
+.section{background:var(--navy2);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:20px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-title{font-family:'DM Serif Display',serif;font-size:17px}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 0;border-bottom:1px solid var(--line);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td:first-child,th:first-child{color:var(--text)}
+
+/* badge */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.badge-pass{background:rgba(74,222,128,.12);color:var(--pass)}
+.badge-fail{background:rgba(248,113,113,.12);color:var(--fail)}
+.badge-gold{background:var(--gold3);color:var(--gold)}
+
+/* btn */
+.btn-sm{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .2s}
+.btn-gold{background:var(--gold);color:#080c1a}
+.btn-gold:hover{background:var(--gold2)}
+
+/* leaderboard */
+.lb-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text3);width:26px;text-align:center}
+.lb-rank.top{color:var(--gold)}
+.lb-name{flex:1;font-size:13px}
+.lb-stat{font-size:12px;color:var(--text3);text-align:right}
+.lb-stat b{color:var(--text2);display:block}
+
+/* tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;background:transparent;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--navy3);color:var(--text)}
+
+/* passage card */
+.passage-card{background:var(--navy3);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.pc-info{}
+.pc-title{font-family:'DM Serif Display',serif;font-size:15px;margin-bottom:4px}
+.pc-meta{font-size:12px;color:var(--text3)}
+.pc-preview{font-size:12px;color:var(--text2);margin-top:6px;font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-badge">DT</div>
+    <span class="sb-name">DT-STENO</span>
+  </div>
+  <div class="sb-link active" onclick="showTab('passages')">
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    Passages
+  </div>
+  <div class="sb-link" onclick="showTab('results')">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    My Results
+  </div>
+  <div class="sb-link" onclick="showTab('leaderboard')">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Leaderboard
+  </div>
+  <a class="sb-link sb-logout" href="/logout">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Logout
+  </a>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="page-header">
+    <div class="page-title">Welcome, {{ student.name }} 👋</div>
+    <div class="page-sub">{{ student.name }} · Batch {{ student.batch_id }}</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Passages</div>
+      <div class="stat-val">{{ passages|length }}</div>
+      <div class="stat-sub">Available to you</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Attempts</div>
+      <div class="stat-val">{{ results|length }}</div>
+      <div class="stat-sub">Total submitted</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Error %</div>
+      {% set pass_results = results | selectattr('verdict','eq','PASS') | list %}
+      <div class="stat-val" style="color:var(--pass)">
+        {% if pass_results %}{{ pass_results | map(attribute='error_pct') | min }}%{% else %}—{% endif %}
+      </div>
+      <div class="stat-sub">Lowest error rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Passes</div>
+      <div class="stat-val" style="color:var(--gold)">{{ pass_results|length }}</div>
+      <div class="stat-sub">Out of {{ results|length }}</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" id="tab-passages" onclick="showTab('passages')">Passages</button>
+    <button class="tab" id="tab-results" onclick="showTab('results')">My Results</button>
+    <button class="tab" id="tab-leaderboard" onclick="showTab('leaderboard')">Leaderboard</button>
+  </div>
+
+  <!-- Passages tab -->
+  <div id="pane-passages">
+    {% if passages %}
+      {% for p in passages %}
+      <div class="passage-card">
+        <div class="pc-info">
+          <div class="pc-title">{{ p.title }}</div>
+          <div class="pc-meta">
+            <span class="badge badge-gold">{{ p.category }}</span>
+            {% if p.audio_url %}&nbsp;🔊 Audio available{% endif %}
+          </div>
+          <div class="pc-preview">{{ p.content[:100] }}…</div>
+        </div>
+        <a href="/student/test/{{ p.id }}">
+          <button class="btn-sm btn-gold">Start Test →</button>
+        </a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:48px;color:var(--text3)">No passages assigned yet. Check back soon.</div>
+    {% endif %}
+  </div>
+
+  <!-- Results tab -->
+  <div id="pane-results" style="display:none">
+    <div class="section">
+      <div class="sec-head"><div class="sec-title">My Recent Results</div></div>
+      <table>
+        <thead><tr>
+          <th>Passage</th><th>Error %</th><th>WPM</th>
+          <th>Full</th><th>Half</th><th>Omit</th><th>Verdict</th><th>Date</th>
+        </tr></thead>
+        <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.title }}</td>
+          <td>{{ r.error_pct }}%</td>
+          <td style="color:var(--gold)">{{ r.wpm }}</td>
+          <td style="color:var(--fail)">{{ r.full_errors }}</td>
+          <td style="color:#fb923c">{{ r.half_errors }}</td>
+          <td>{{ r.omit_errors }}</td>
+          <td><span class="badge {% if r.verdict=='PASS' %}badge-pass{% else %}badge-fail{% endif %}">{{ r.verdict }}</span></td>
+          <td>{{ r.submitted_at[:10] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3)">No results yet. Take a test!</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Leaderboard tab -->
+  <div id="pane-leaderboard" style="display:none">
+    <div class="section">
+      <div class="sec-head"><div class="sec-title">Batch Leaderboard</div></div>
+      {% for lb in leaderboard %}
+      <div class="lb-row">
+        <div class="lb-rank {% if loop.index <= 3 %}top{% endif %}">{{ loop.index }}</div>
+        <div class="lb-name">{{ lb.name }}</div>
+        <div class="lb-stat"><b>{{ lb.avg_error or '—' }}%</b>avg error</div>
+        <div class="lb-stat"><b>{{ lb.best_wpm or '—' }}</b>best WPM</div>
+        <div class="lb-stat"><b>{{ lb.passes }}/{{ lb.attempts }}</b>passes</div>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:24px;color:var(--text3)">No data yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+
+<script>
+function showTab(name){
+  ['passages','results','leaderboard'].forEach(t=>{
+    document.getElementById('pane-'+t).style.display = t===name?'block':'none';
+    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+  });
+}
+</script>
+</body>
+</html>
