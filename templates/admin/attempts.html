@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% block title %}Attempts{% endblock %}
+{% block topbar_title %}All Attempts{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Recent 50 Attempts</div>
+    <div class="flex gap-2">
+      <input type="text" class="form-control" style="width:200px;padding:7px 12px;font-size:13px" placeholder="Search student…" oninput="filterAttempts(this.value)">
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table id="attTable">
+      <thead><tr><th>Student</th><th>Passage</th><th>Error%</th><th>WPM</th><th>Full</th><th>Half</th><th>Omit</th><th>Mode</th><th>Date</th><th>Corrected</th><th></th></tr></thead>
+      <tbody>
+      {% for a in attempts %}
+      {% set e = a.ErrorPercent|float %}
+      <tr data-search="{{ a._student_name|lower }} {{ a.PassageCode|lower }}">
+        <td><strong>{{ a._student_name or a.StudentID }}</strong></td>
+        <td><code>{{ a.PassageCode }}</code></td>
+        <td><span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ e }}%</span></td>
+        <td class="muted">{{ a.WPM }}</td>
+        <td class="muted">{{ a.FullMistakes }}</td>
+        <td class="muted">{{ a.HalfMistakes }}</td>
+        <td class="muted">{{ a.Omissions }}</td>
+        <td><span class="badge {% if a.Mode=='Test' %}badge-gold{% else %}badge-neutral{% endif %}">{{ a.Mode or 'Practice' }}</span></td>
+        <td class="muted text-sm">{{ a.Date[:10] if a.Date else '—' }}</td>
+        <td>{% if a.Corrected=='YES' %}<span class="badge badge-blue">Corrected</span>{% else %}<span class="badge badge-neutral">Auto</span>{% endif %}</td>
+        <td><a href="/admin/attempts/{{ a.AttemptID }}" class="btn btn-ghost btn-sm">Review</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="11" style="text-align:center;padding:28px;color:var(--text3)">No attempts yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterAttempts(q){
+  document.querySelectorAll('#attTable tbody tr[data-search]').forEach(r=>{
+    r.style.display=r.dataset.search.includes(q.toLowerCase())?'':'none';
+  });
+}
+</script>
+{% endblock %}

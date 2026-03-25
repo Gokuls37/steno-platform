@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block topbar_title %}Settings{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px">
+  <div class="card-header"><div class="card-title">Platform Settings</div></div>
+  <div class="card-body">
+    <div class="form-group">
+      <label class="form-label">Class Registration Code</label>
+      <input class="form-control" type="text" id="classCode" value="{{ class_code }}" style="font-family:'JetBrains Mono',monospace;letter-spacing:1px">
+      <div class="text-sm text-muted mt-1">Students need this code to register. Share via WhatsApp.</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function saveSettings(){
+  const r=await api('/admin/settings',{CLASS_CODE:document.getElementById('classCode').value.trim().toUpperCase()});
+  if(r.status==='ok')showToast('Settings saved!');
+  else showToast(r.message||'Failed','error');
+}
+</script>
+{% endblock %}

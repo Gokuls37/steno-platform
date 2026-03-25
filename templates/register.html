@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Register — DT-STENO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080c1a;--surface:#0f1526;--line:rgba(255,255,255,.08);--gold:#f0a500;--gold2:#f5be3d;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;--fail:#f87171;--pass:#4ade80}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background-image:radial-gradient(ellipse 60% 50% at 80% 30%,rgba(240,165,0,.06) 0%,transparent 55%),radial-gradient(ellipse 50% 60% at 20% 70%,rgba(46,93,230,.05) 0%,transparent 55%)}
+.wrap{width:100%;max-width:460px}
+.logo{text-align:center;margin-bottom:28px}
+.logo-icon{width:50px;height:50px;border-radius:13px;background:var(--gold);display:inline-flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:500;color:#080c1a;margin-bottom:12px}
+.logo-name{display:block;font-family:'DM Serif Display',serif;font-size:24px}
+.logo-tagline{display:block;font-size:11px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-top:3px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,.6)}
+.card-heading{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:5px}
+.card-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.55}
+
+.code-callout{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(240,165,0,.07);border:1px solid rgba(240,165,0,.18);border-radius:9px;margin-bottom:22px}
+.cc-icon{flex-shrink:0;margin-top:1px}
+.cc-icon svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:1.8}
+.cc-text{font-size:13px;color:var(--text2);line-height:1.5}
+.cc-text strong{color:var(--gold);font-weight:600}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.input-wrap{position:relative}
+.input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex}
+.input-icon svg{width:15px;height:15px;stroke:var(--text3);fill:none;stroke-width:1.8}
+.inp{width:100%;padding:11px 14px 11px 38px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+.inp:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,165,0,.1)}
+.inp::placeholder{color:var(--text3)}
+.pw-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);display:flex;padding:4px;transition:color .2s}
+.pw-toggle:hover{color:var(--text2)}
+.pw-toggle svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+.strength-bar{height:3px;border-radius:999px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}
+.strength-fill{height:100%;border-radius:999px;transition:width .3s,background .3s;width:0}
+
+.alert{display:none;align-items:flex-start;gap:9px;padding:11px 14px;border-radius:9px;font-size:13px;margin-bottom:14px;line-height:1.4}
+.alert.error{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--fail)}
+.alert.success{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--pass)}
+.alert.show{display:flex}
+.alert svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+
+.btn-submit{width:100%;padding:13px;border-radius:10px;border:none;cursor:pointer;background:var(--gold);color:#080c1a;font-size:15px;font-weight:600;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}
+.btn-submit:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-submit:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+.bottom{text-align:center;margin-top:18px;font-size:13px;color:var(--text3)}
+.bottom a{color:var(--gold);text-decoration:none}
+.bottom a:hover{text-decoration:underline}
+
+.spinner{width:17px;height:17px;border:2px solid rgba(8,12,26,.2);border-top-color:#080c1a;border-radius:50%;animation:spin .65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Success state */
+.success-view{display:none;text-align:center;padding:20px 0}
+.success-view.show{display:block}
+.success-icon{width:64px;height:64px;border-radius:50%;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.success-icon svg{width:28px;height:28px;stroke:var(--pass);fill:none;stroke-width:2}
+.success-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:8px}
+.success-msg{font-size:14px;color:var(--text2);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-icon">DT</div>
+    <span class="logo-name">DT-STENO</span>
+    <span class="logo-tagline">Stenography Institute</span>
+  </div>
+
+  <div class="card">
+    <!-- Register Form -->
+    <div id="registerView">
+      <div class="card-heading">Create your account</div>
+      <div class="card-sub">You need a class code from your instructor to register.</div>
+
+      <div class="code-callout">
+        <span class="cc-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        <div class="cc-text">Your instructor shares a <strong>class code</strong> via WhatsApp. Enter it below to join the batch.</div>
+      </div>
+
+      <div class="alert error" id="errBox">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+        <span id="errMsg">Something went wrong</span>
+      </div>
+
+      <form id="regForm">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <div class="input-wrap">
+            <span class="input-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <input class="inp" type="text" id="name" placeholder="Your full name" required autocomplete="name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Mobile Number</label>
+            <div class="input-wrap">
+              <span class="input-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+              <input class="inp" type="tel" id="mobile" placeholder="10-digit number" required autocomplete="tel">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Class Code</label>
+            <div class="input-wrap">
+              <span class="input-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input class="inp" type="text" id="classCode" placeholder="e.g. DT2024" required
+                     style="text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;font-size:13px">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <span class="input-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <input class="inp" type="password" id="password" placeholder="Create a strong password"
+                   required autocomplete="new-password" oninput="checkStrength(this.value)">
+            <button type="button" class="pw-toggle" onclick="togglePw('password','pwIcon1')">
+              <svg id="pwIcon1" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strengthBar"></div></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="input-wrap">
+            <span class="input-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <input class="inp" type="password" id="confirm" placeholder="Repeat your password" required autocomplete="new-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('confirm','pwIcon2')">
+              <svg id="pwIcon2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn-submit" type="submit" id="submitBtn">
+          <span id="btnLabel">Request Registration</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Success State -->
+    <div class="success-view" id="successView">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="success-title">Request sent!</div>
+      <p class="success-msg">Your registration is pending instructor approval.<br>You'll be notified via WhatsApp once approved. Then you can <a href="/login" style="color:var(--gold)">sign in here</a>.</p>
+    </div>
+  </div>
+
+  <div class="bottom" id="bottomLink">Already registered? <a href="/login">Sign in →</a></div>
+</div>
+<script>
+function togglePw(id,iconId){
+  const i=document.getElementById(id);
+  const ic=document.getElementById(iconId);
+  if(i.type==='password'){i.type='text';ic.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';}
+  else{i.type='password';ic.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';}
+}
+function checkStrength(pw){
+  const bar=document.getElementById('strengthBar');
+  let score=0;
+  if(pw.length>=8)score++;if(/[A-Z]/.test(pw))score++;
+  if(/[0-9]/.test(pw))score++;if(/[^A-Za-z0-9]/.test(pw))score++;
+  const w=['0%','30%','55%','75%','100%'][score];
+  const c=['','#f87171','#fb923c','#f0a500','#4ade80'][score];
+  bar.style.width=w;bar.style.background=c;
+}
+document.getElementById('regForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const err=document.getElementById('errBox');
+  const btn=document.getElementById('submitBtn');
+  const lbl=document.getElementById('btnLabel');
+  err.classList.remove('show');
+
+  const pw=document.getElementById('password').value;
+  const cf=document.getElementById('confirm').value;
+  if(pw!==cf){document.getElementById('errMsg').textContent='Passwords do not match.';err.classList.add('show');return;}
+  if(pw.length<6){document.getElementById('errMsg').textContent='Password must be at least 6 characters.';err.classList.add('show');return;}
+
+  btn.disabled=true;lbl.innerHTML='<div class="spinner"></div>';
+  try{
+    const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        name:document.getElementById('name').value.trim(),
+        mobile:document.getElementById('mobile').value.trim(),
+        class_code:document.getElementById('classCode').value.trim(),
+        password:pw
+      })});
+    const d=await r.json();
+    if(d.status==='ok'){
+      document.getElementById('registerView').style.display='none';
+      document.getElementById('successView').classList.add('show');
+      document.getElementById('bottomLink').style.display='none';
+    } else {
+      document.getElementById('errMsg').textContent=d.message||'Registration failed';
+      err.classList.add('show');btn.disabled=false;lbl.textContent='Request Registration';
+    }
+  }catch{document.getElementById('errMsg').textContent='Connection error. Try again.';err.classList.add('show');btn.disabled=false;lbl.textContent='Request Registration';}
+});
+</script>
+</body>
+</html>

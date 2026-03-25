@@ -1,0 +1,164 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block topbar_title %}Dashboard — {{ month }}{% endblock %}
+{% block topbar_actions %}
+{% if stats.pending > 0 %}
+<a href="/admin/students" class="btn btn-sm" style="background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.25)">
+  ⏳ {{ stats.pending }} pending approval
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">Students</div>
+    <div class="stat-val blue">{{ stats.students }}</div>
+    <div class="stat-sub">Approved accounts</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">This Month</div>
+    <div class="stat-val">{{ stats.month_attempts }}</div>
+    <div class="stat-sub">Attempts</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Avg Error %</div>
+    <div class="stat-val {% if stats.avg_err<=5 %}green{% elif stats.avg_err<=10 %}gold{% else %}red{% endif %}">{{ stats.avg_err }}%</div>
+    <div class="stat-sub">This month</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Pass Rate</div>
+    <div class="stat-val {% if stats.pass_rate>=60 %}green{% else %}red{% endif %}">{{ stats.pass_rate }}%</div>
+    <div class="stat-sub">≤5% error</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Active Tests</div>
+    <div class="stat-val gold">{{ stats.active_tests }}</div>
+    <div class="stat-sub">Open right now</div>
+  </div>
+  {% if stats.pending > 0 %}
+  <div class="stat-card" style="border-color:rgba(245,158,11,.3)">
+    <div class="stat-label">Pending</div>
+    <div class="stat-val" style="color:#d97706">{{ stats.pending }}</div>
+    <div class="stat-sub">Need approval</div>
+  </div>
+  {% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+
+  <!-- Pending approvals -->
+  {% if pending_students %}
+  <div class="card" style="border-color:rgba(245,158,11,.3)">
+    <div class="card-header">
+      <div class="card-title">⏳ Pending Approvals</div>
+      <a href="/admin/students" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Mobile</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+        {% for s in pending_students %}
+        <tr>
+          <td><strong>{{ s.Name }}</strong></td>
+          <td class="muted">{{ s.Mobile }}</td>
+          <td class="muted text-sm">{{ s.JoinedDate }}</td>
+          <td>
+            <div class="flex gap-2">
+              <button class="btn btn-success btn-sm" onclick="approveStudent('{{ s.StudentID }}', this)">✓ Approve</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectStudent('{{ s.StudentID }}', this)">✗</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Top students this month -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🏆 Top Students — {{ month }}</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Student</th><th>Attempts</th><th>Avg Error %</th></tr></thead>
+        <tbody>
+        {% if top_students %}
+          {% for s in top_students %}
+          <tr>
+            <td class="muted">{{ loop.index }}</td>
+            <td><a href="/admin/students/{{ s.id }}" style="color:var(--accent);font-weight:600">{{ s.name }}</a></td>
+            <td class="muted">{{ s.attempts }}</td>
+            <td>
+              <span class="badge {% if s.avg_err<=5 %}badge-pass{% elif s.avg_err<=10 %}badge-warn{% else %}badge-fail{% endif %}">
+                {{ s.avg_err }}%
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text3)">No attempts this month yet</td></tr>
+        {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent attempts -->
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-header">
+      <div class="card-title">📋 Recent Attempts</div>
+      <a href="/admin/attempts" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Passage</th><th>Error %</th><th>WPM</th><th>Mode</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+        {% if recent %}
+          {% for a in recent %}
+          {% set e = a.ErrorPercent|float %}
+          <tr>
+            <td><strong>{{ a._student_name or a.StudentID }}</strong></td>
+            <td><code>{{ a.PassageCode }}</code></td>
+            <td>
+              <span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">
+                {{ e }}%
+              </span>
+            </td>
+            <td class="muted">{{ a.WPM }}</td>
+            <td><span class="badge {% if a.Mode=='Test' %}badge-gold{% else %}badge-neutral{% endif %}">{{ a.Mode or 'Practice' }}</span></td>
+            <td class="muted text-sm">{{ a.Date[:16] if a.Date else '—' }}</td>
+            <td><a href="/admin/attempts/{{ a.AttemptID }}" class="btn btn-ghost btn-sm">Review</a></td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">No attempts yet</td></tr>
+        {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function approveStudent(sid, btn){
+  btn.disabled=true; btn.textContent='...';
+  const r = await api(`/admin/students/${sid}/approve`, {});
+  if(r.status==='ok'){showToast('Student approved!');btn.closest('tr').remove();}
+  else showToast(r.message||'Failed','error');
+}
+async function rejectStudent(sid, btn){
+  if(!confirm('Reject this student?')) return;
+  btn.disabled=true;
+  const r = await api(`/admin/students/${sid}/reject`, {});
+  if(r.status==='ok'){showToast('Student rejected');btn.closest('tr').remove();}
+  else showToast(r.message||'Failed','error');
+}
+</script>
+{% endblock %}

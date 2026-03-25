@@ -1,0 +1,141 @@
+{% extends "admin/base.html" %}
+{% block title %}Passages{% endblock %}
+{% block topbar_title %}Passages{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" onclick="document.getElementById('addModal').classList.add('open')">+ Add Passage</button>
+{% endblock %}
+{% block content %}
+<!-- Filter -->
+<div class="card mb-3">
+  <div class="card-body" style="padding:12px 18px">
+    <div class="flex gap-3" style="flex-wrap:wrap">
+      <input type="text" class="form-control" style="max-width:240px;padding:8px 12px" placeholder="Search code or name…" oninput="filterPassages()">
+      <select class="form-control" style="width:170px" id="filterCat" onchange="filterPassages()">
+        <option value="">All Categories</option>
+        {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+      <select class="form-control" style="width:130px" id="filterStatus" onchange="filterPassages()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="tbl-wrap">
+    <table id="psgTable">
+      <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Speed</th><th>Words</th><th>Attempts</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for p in passages %}
+      {% set is_active = p.Active|string|lower == 'true' %}
+      <tr data-name="{{ p.PassageName|lower }} {{ p.PassageCode|lower }}" data-cat="{{ p.Category or '' }}" data-status="{{ 'active' if is_active else 'inactive' }}">
+        <td><code>{{ p.PassageCode }}</code></td>
+        <td><strong>{{ p.PassageName }}</strong></td>
+        <td><span class="badge badge-neutral text-sm">{{ p.Category or '—' }}</span></td>
+        <td class="muted">{{ p.Speed or '—' }}</td>
+        <td class="muted">{{ p.TotalWords }}</td>
+        <td class="muted">{{ p._attempts }}</td>
+        <td>
+          <span class="badge {% if is_active %}badge-pass{% else %}badge-neutral{% endif %}">
+            {{ 'Active' if is_active else 'Inactive' }}
+          </span>
+        </td>
+        <td>
+          <div class="flex gap-2">
+            <button class="btn btn-sm {% if is_active %}btn-danger{% else %}btn-success{% endif %}"
+              onclick="togglePassage('{{ p.PassageCode }}', {{ 'false' if is_active else 'true' }}, this)">
+              {{ 'Deactivate' if is_active else 'Activate' }}
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text3)">No passages yet — add one above</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Passage Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal" style="width:580px">
+    <div class="modal-title">Add New Passage</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Passage Code *</label><input class="form-control" id="p_code" placeholder="e.g. KC001" style="text-transform:uppercase;font-family:'JetBrains Mono',monospace"></div>
+      <div class="form-group"><label class="form-label">Passage Name *</label><input class="form-control" id="p_name" placeholder="e.g. Budget Speech 2024"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-control" id="p_cat">
+          <option value="">-- Select --</option>
+          <option value="KC">KC Passages</option>
+          <option value="TN_DOTE">TN DOTE</option>
+          <option value="Pitman">Pitman Basic</option>
+          <option value="General">General</option>
+          <option value="Presidential">Presidential</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Speed (WPM)</label>
+        <select class="form-control" id="p_speed">
+          <option value="">-- Any --</option>
+          <option value="80">80 WPM</option>
+          <option value="100">100 WPM</option>
+          <option value="120">120 WPM</option>
+          <option value="140">140 WPM</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Audio Link (optional)</label><input class="form-control" id="p_audio" placeholder="Google Drive or YouTube link"></div>
+    <div class="form-group">
+      <label class="form-label">Passage Text *</label>
+      <textarea class="form-control" id="p_text" rows="8" placeholder="Paste the full passage text here…" oninput="updateWC()"></textarea>
+      <div class="text-sm text-muted mt-1">Word count: <strong id="p_wc">0</strong></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('addModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="addPassage()">Add Passage</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function updateWC(){
+  const t=document.getElementById('p_text').value.trim();
+  document.getElementById('p_wc').textContent=t?t.split(/\s+/).length:0;
+}
+function filterPassages(){
+  const q=document.querySelector('input[placeholder="Search code or name…"]').value.toLowerCase();
+  const cat=document.getElementById('filterCat').value;
+  const st=document.getElementById('filterStatus').value;
+  document.querySelectorAll('#psgTable tbody tr[data-name]').forEach(r=>{
+    const show=(!q||r.dataset.name.includes(q))&&(!cat||r.dataset.cat===cat)&&(!st||r.dataset.status===st);
+    r.style.display=show?'':'none';
+  });
+}
+async function togglePassage(code, active, btn){
+  btn.disabled=true;
+  const r=await api('/admin/passages/toggle',{code,active:active===true||active==='true'});
+  if(r.status==='ok'){showToast('Updated!');location.reload();}
+  else showToast(r.message||'Failed','error');
+}
+async function addPassage(){
+  const code=document.getElementById('p_code').value.trim().toUpperCase();
+  const name=document.getElementById('p_name').value.trim();
+  const text=document.getElementById('p_text').value.trim();
+  if(!code||!name||!text){showToast('Code, name and text are required','error');return;}
+  const r=await api('/admin/passages/add',{
+    code,name,text,
+    category:document.getElementById('p_cat').value,
+    speed:document.getElementById('p_speed').value,
+    audio_link:document.getElementById('p_audio').value.trim(),
+  });
+  if(r.status==='ok'){showToast(`Passage added (${r.word_count} words)!`);setTimeout(()=>location.reload(),1000);}
+  else showToast(r.message||'Failed','error');
+}
+</script>
+{% endblock %}

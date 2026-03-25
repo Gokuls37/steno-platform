@@ -1,0 +1,49 @@
+{% extends "admin/base.html" %}
+{% block title %}Monthly Report{% endblock %}
+{% block topbar_title %}Monthly Report — {{ month_name }} {{ year }}{% endblock %}
+{% block content %}
+<div class="card mb-3" style="max-width:400px">
+  <div class="card-body" style="padding:13px 18px">
+    <form method="get" class="flex gap-3">
+      <select name="year" class="form-control" style="width:100px">
+        {% for y in years %}<option value="{{ y }}" {% if y|int==year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select>
+      <select name="month" class="form-control" style="width:140px">
+        {% for m in months %}<option value="{{ m }}" {% if m==month %}selected{% endif %}>{{ calendar.month_name[m] }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Generate</button>
+    </form>
+  </div>
+</div>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-label">Attempts</div><div class="stat-val blue">{{ summary.attempts }}</div></div>
+  <div class="stat-card"><div class="stat-label">Students</div><div class="stat-val">{{ summary.students }}</div></div>
+  <div class="stat-card"><div class="stat-label">Avg Error%</div><div class="stat-val {% if summary.avg_err<=5 %}green{% elif summary.avg_err<=10 %}gold{% else %}red{% endif %}">{{ summary.avg_err }}%</div></div>
+  <div class="stat-card"><div class="stat-label">Pass Rate</div><div class="stat-val {% if summary.pass_rate>=60 %}green{% else %}red{% endif %}">{{ summary.pass_rate }}%</div></div>
+</div>
+{% if rows %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Student Rankings</div></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Student</th><th>Attempts</th><th>Avg Error%</th><th>Best Error%</th><th>Avg WPM</th><th>Passed</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="muted">{% if loop.index==1 %}🥇{% elif loop.index==2 %}🥈{% elif loop.index==3 %}🥉{% else %}{{ loop.index }}{% endif %}</td>
+        <td><a href="/admin/students/{{ r.id }}" style="color:var(--accent);font-weight:600">{{ r.name }}</a></td>
+        <td>{{ r.attempts }}</td>
+        <td><span class="badge {% if r.avg_err<=5 %}badge-pass{% elif r.avg_err<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ r.avg_err }}%</span></td>
+        <td class="muted">{{ r.best_err }}%</td>
+        <td>{{ r.avg_wpm }}</td>
+        <td>{{ r.passed }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--text3)">No attempts for {{ month_name }} {{ year }}</div></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+{% block title %}Attempt Review{% endblock %}
+{% block topbar_title %}Attempt Review{% endblock %}
+{% block topbar_actions %}
+<a href="/admin/attempts" class="btn btn-ghost btn-sm">← Back</a>
+{% endblock %}
+{% block content %}
+{% set e = attempt.ErrorPercent|float %}
+<!-- Score row -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:11px;margin-bottom:20px">
+  {% for item in [('Full',attempt.FullMistakes,'red'),('Half',attempt.HalfMistakes,'warn'),('Omission',attempt.Omissions,''),('Extra',attempt.ExtraWords,''),('Cap',attempt.Capitalization,''),('F.Stop',attempt.FullStop,''),('Total',attempt.TotalErrors,'gold'),('Error%',attempt.ErrorPercent,'gold')] %}
+  <div class="stat-card" style="padding:12px 14px;text-align:center">
+    <div class="stat-label">{{ item[0] }}</div>
+    <div class="stat-val {{ item[2] }}" style="font-size:26px">{{ item[1] or 0 }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:18px">
+  <!-- Highlighted passage -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Annotated Passage</div>
+      <span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}" style="font-size:13px">
+        {{ 'PASS' if e<=5 else ('BORDERLINE' if e<=10 else 'FAIL') }}
+      </span>
+    </div>
+    <div class="card-body">
+      {% if attempt.HighlightedPassage %}
+      <div style="font-family:'JetBrains Mono',monospace;font-size:14px;line-height:2.2">
+        {{ attempt.HighlightedPassage|safe }}
+      </div>
+      {% else %}
+      <p class="text-muted">No annotated passage available.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Correction panel -->
+  <div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Manual Correction</div></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Full</label><input class="form-control" type="number" id="c_full" value="{{ attempt.FullMistakes or 0 }}" min="0" step="1" oninput="recalc()"></div>
+          <div class="form-group"><label class="form-label">Half</label><input class="form-control" type="number" id="c_half" value="{{ attempt.HalfMistakes or 0 }}" min="0" step="0.5" oninput="recalc()"></div>
+          <div class="form-group"><label class="form-label">Omission</label><input class="form-control" type="number" id="c_omit" value="{{ attempt.Omissions or 0 }}" min="0" step="1" oninput="recalc()"></div>
+          <div class="form-group"><label class="form-label">Extra</label><input class="form-control" type="number" id="c_extra" value="{{ attempt.ExtraWords or 0 }}" min="0" step="1" oninput="recalc()"></div>
+          <div class="form-group"><label class="form-label">Cap</label><input class="form-control" type="number" id="c_cap" value="{{ attempt.Capitalization or 0 }}" min="0" step="0.5" oninput="recalc()"></div>
+          <div class="form-group"><label class="form-label">F.Stop</label><input class="form-control" type="number" id="c_fs" value="{{ attempt.FullStop or 0 }}" min="0" step="0.5" oninput="recalc()"></div>
+        </div>
+        <div style="background:var(--acbg);border-radius:8px;padding:10px 13px;margin-bottom:12px;font-size:13px">
+          New Total: <strong id="newTotal">{{ attempt.TotalErrors or 0 }}</strong> &nbsp;·&nbsp; <strong id="newPct">{{ attempt.ErrorPercent or 0 }}</strong>%
+        </div>
+        <div class="form-group"><label class="form-label">Admin Note</label><textarea class="form-control" id="c_note" rows="2" placeholder="Optional correction note…">{{ attempt.AdminNote or '' }}</textarea></div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveCorrection()">💾 Save Correction</button>
+      </div>
+    </div>
+    <div class="card mt-1">
+      <div class="card-body">
+        <div class="text-sm text-muted">Student: <strong>{{ student.Name if student else attempt.StudentID }}</strong></div>
+        <div class="text-sm text-muted mt-1">Passage: <strong><code>{{ attempt.PassageCode }}</code></strong></div>
+        <div class="text-sm text-muted mt-1">Mode: <strong>{{ attempt.Mode or 'Practice' }}</strong></div>
+        <div class="text-sm text-muted mt-1">Date: <strong>{{ attempt.Date[:16] if attempt.Date else '—' }}</strong></div>
+        <div class="text-sm text-muted mt-1">WPM: <strong>{{ attempt.WPM }}</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const WORD_COUNT = {{ passage.TotalWords if passage else 100 }};
+function recalc(){
+  const f=parseFloat(document.getElementById('c_full').value)||0;
+  const h=parseFloat(document.getElementById('c_half').value)||0;
+  const o=parseFloat(document.getElementById('c_omit').value)||0;
+  const x=parseFloat(document.getElementById('c_extra').value)||0;
+  const c=parseFloat(document.getElementById('c_cap').value)||0;
+  const s=parseFloat(document.getElementById('c_fs').value)||0;
+  const total=f+h+o+x+c+s;
+  document.getElementById('newTotal').textContent=total;
+  document.getElementById('newPct').textContent=WORD_COUNT>0?Math.round(total/WORD_COUNT*10000)/100:0;
+}
+async function saveCorrection(){
+  const r=await api('/admin/attempts/{{ attempt.AttemptID }}/correct',{
+    full:parseFloat(document.getElementById('c_full').value)||0,
+    half:parseFloat(document.getElementById('c_half').value)||0,
+    omission:parseFloat(document.getElementById('c_omit').value)||0,
+    extra:parseFloat(document.getElementById('c_extra').value)||0,
+    cap:parseFloat(document.getElementById('c_cap').value)||0,
+    fs:parseFloat(document.getElementById('c_fs').value)||0,
+    note:document.getElementById('c_note').value,
+  });
+  if(r.status==='ok')showToast(`Saved! New: ${r.new_total} errors (${r.new_pct}%)`);
+  else showToast(r.message||'Failed','error');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ student.Name }} Report{% endblock %}
+{% block topbar_title %}{{ student.Name }} — {{ month_name }} {{ year }}{% endblock %}
+{% block topbar_actions %}
+<a href="/admin/students/{{ sid }}" class="btn btn-ghost btn-sm">← Profile</a>
+{% endblock %}
+{% block content %}
+<div class="card mb-3" style="max-width:400px">
+  <div class="card-body" style="padding:13px 18px">
+    <form method="get" class="flex gap-3">
+      <select name="year" class="form-control" style="width:100px">
+        {% for y in years %}<option value="{{ y }}" {% if y|int==year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select>
+      <select name="month" class="form-control" style="width:140px">
+        {% for m in months %}<option value="{{ m }}" {% if m==month %}selected{% endif %}>{{ calendar.month_name[m] }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Generate</button>
+    </form>
+  </div>
+</div>
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-label">Attempts</div><div class="stat-val blue">{{ summary.attempts }}</div></div>
+  <div class="stat-card"><div class="stat-label">Avg Error%</div><div class="stat-val {% if summary.avg_err<=5 %}green{% else %}red{% endif %}">{{ summary.avg_err }}%</div></div>
+  <div class="stat-card"><div class="stat-label">Best Error%</div><div class="stat-val green">{{ summary.best_err }}%</div></div>
+  <div class="stat-card"><div class="stat-label">Avg WPM</div><div class="stat-val">{{ summary.avg_wpm }}</div></div>
+  <div class="stat-card"><div class="stat-label">Passed</div><div class="stat-val green">{{ summary.passed }}</div></div>
+  <div class="stat-card"><div class="stat-label">Pass Rate</div><div class="stat-val {% if summary.pass_rate>=60 %}green{% else %}red{% endif %}">{{ summary.pass_rate }}%</div></div>
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Attempts — {{ month_name }} {{ year }}</div></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Date</th><th>Passage</th><th>Error%</th><th>WPM</th><th>Result</th></tr></thead>
+      <tbody>
+      {% for a in attempts %}
+      {% set e=a.ErrorPercent|float %}
+      <tr>
+        <td class="muted text-sm">{{ a.Date[:10] if a.Date else '—' }}</td>
+        <td><code>{{ a.PassageCode }}</code></td>
+        <td><span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ e }}%</span></td>
+        <td>{{ a.WPM }}</td>
+        <td><span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ 'PASS' if e<=5 else ('BORDERLINE' if e<=10 else 'FAIL') }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">No attempts this month</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

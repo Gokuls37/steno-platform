@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% block title %}Test {{ test.TestID }}{% endblock %}
+{% block topbar_title %}Test: <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--gold)">{{ test.TestID }}</span>{% endblock %}
+{% block topbar_actions %}
+<a href="/admin/tests" class="btn btn-ghost btn-sm">← Tests</a>
+{% if test.Active|string|lower=='true' %}
+<button class="btn btn-danger btn-sm" onclick="closeTest('{{ test.TestID }}')">Close Test</button>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-bottom:20px">
+  <div class="stat-card"><div class="stat-label">Passage</div><div style="font-family:'JetBrains Mono',monospace;font-size:16px;margin-top:6px;color:var(--accent)">{{ test.PassageCode }}</div></div>
+  <div class="stat-card"><div class="stat-label">Submissions</div><div class="stat-val blue">{{ attempts|length }}</div></div>
+  <div class="stat-card"><div class="stat-label">Time Limit</div><div class="stat-val">{{ test.TimeLimitMinutes or 30 }}<span style="font-size:14px"> min</span></div></div>
+</div>
+{% if test.AudioLink %}
+<div class="card mb-3">
+  <div class="card-body" style="padding:14px 18px">
+    <strong>Audio:</strong> <a href="{{ test.AudioLink }}" target="_blank" style="color:var(--accent)">{{ test.AudioLink }}</a>
+  </div>
+</div>
+{% endif %}
+<div class="card">
+  <div class="card-header"><div class="card-title">Student Submissions</div></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Error%</th><th>WPM</th><th>Result</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+      {% for a in attempts %}
+      {% set e=a.ErrorPercent|float %}
+      <tr>
+        <td><strong>{{ a._student_name or a.StudentID }}</strong></td>
+        <td><span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ e }}%</span></td>
+        <td class="muted">{{ a.WPM }}</td>
+        <td><span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ 'PASS' if e<=5 else ('BORDERLINE' if e<=10 else 'FAIL') }}</span></td>
+        <td class="muted text-sm">{{ a.Date[:16] if a.Date else '—' }}</td>
+        <td><a href="/admin/attempts/{{ a.AttemptID }}" class="btn btn-ghost btn-sm">Review</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No submissions yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function closeTest(tid){
+  if(!confirm('Close this test?'))return;
+  const r=await api(`/admin/tests/${tid}/deactivate`,{});
+  if(r.status==='ok'){showToast('Test closed');location.reload();}
+}
+</script>
+{% endblock %}

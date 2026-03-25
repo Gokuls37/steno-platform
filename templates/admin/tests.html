@@ -1,0 +1,136 @@
+{% extends "admin/base.html" %}
+{% block title %}Tests{% endblock %}
+{% block topbar_title %}Tests{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" onclick="document.getElementById('createModal').classList.add('open')">+ Create Test</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Test ID</th><th>Passage</th><th>Audio</th><th>Time Limit</th><th>Created</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for t in tests %}
+      {% set active = t.Active|string|lower == 'true' %}
+      <tr>
+        <td><code>{{ t.TestID }}</code></td>
+        <td>
+          <strong>{{ t._passage_name or t.PassageCode }}</strong>
+          <div class="text-sm muted">{{ t.PassageCode }}</div>
+        </td>
+        <td>
+          {% if t.AudioLink %}
+          <a href="{{ t.AudioLink }}" target="_blank" class="btn btn-ghost btn-sm">▶ Open</a>
+          {% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        <td class="muted">{{ t.TimeLimitMinutes or 30 }} min</td>
+        <td class="muted text-sm">{{ t.CreatedAt[:10] if t.CreatedAt else '—' }}</td>
+        <td class="muted text-sm">{{ t.ExpiresAt[:10] if t.ExpiresAt else '—' }}</td>
+        <td><span class="badge {% if active %}badge-pass{% else %}badge-neutral{% endif %}">{{ 'Active' if active else 'Closed' }}</span></td>
+        <td>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" onclick="copyLink('{{ t.TestID }}')">📋 Copy Link</button>
+            <a href="/admin/tests/{{ t.TestID }}" class="btn btn-ghost btn-sm">Results</a>
+            {% if active %}
+            <button class="btn btn-danger btn-sm" onclick="closeTest('{{ t.TestID }}',this)">Close</button>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text3)">No tests created yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create Test Modal -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <div class="modal-title">Create New Test</div>
+    <div class="form-group"><label class="form-label">Passage Code *</label>
+      <input class="form-control" id="t_code" placeholder="e.g. KC001" style="text-transform:uppercase;font-family:'JetBrains Mono',monospace">
+      <div class="text-sm text-muted mt-1">Must match an existing passage in your library</div>
+    </div>
+    <div class="form-group"><label class="form-label">Audio Link (Google Drive / YouTube)</label>
+      <input class="form-control" id="t_audio" placeholder="https://drive.google.com/…"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Time Limit (minutes)</label>
+        <input class="form-control" type="number" id="t_time" value="30" min="5" max="120"></div>
+      <div class="form-group"><label class="form-label">Expires On</label>
+        <input class="form-control" type="date" id="t_expires"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Students (leave blank = all)</label>
+      <select class="form-control" id="t_students" multiple style="height:120px">
+        <option value="ALL" selected>All students</option>
+        {% for s in students %}<option value="{{ s.StudentID }}">{{ s.Name }}</option>{% endfor %}
+      </select>
+      <div class="text-sm text-muted mt-1">Ctrl+click to select specific students, or leave "All students" selected</div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes (shown to students)</label>
+      <input class="form-control" id="t_notes" placeholder="e.g. Saturday Weekly Test — KC Passage"></div>
+    <div style="background:var(--acbg);border:1px solid var(--acbd);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--accent);margin-bottom:14px">
+      💡 After creating, copy the test link and send it to students via WhatsApp.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('createModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="createTest()">Create Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link display modal -->
+<div class="modal-overlay" id="linkModal">
+  <div class="modal" style="text-align:center">
+    <div class="modal-title">Test Created!</div>
+    <p style="font-size:14px;color:var(--text2);margin-bottom:16px">Share this link with your students via WhatsApp:</p>
+    <div style="background:var(--surf2);border:1px solid var(--line);border-radius:9px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;margin-bottom:16px" id="testLinkDisplay"></div>
+    <div class="flex gap-3" style="justify-content:center">
+      <button class="btn btn-primary" onclick="copyDisplayedLink()">📋 Copy Link</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('linkModal').classList.remove('open');location.reload()">Done</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const BASE_URL = window.location.origin;
+function copyLink(tid){
+  const url=`${BASE_URL}/student/test/${tid}`;
+  navigator.clipboard.writeText(url).then(()=>showToast('Link copied!'));
+}
+function copyDisplayedLink(){
+  const url=document.getElementById('testLinkDisplay').textContent;
+  navigator.clipboard.writeText(url).then(()=>showToast('Link copied!'));
+}
+async function closeTest(tid,btn){
+  if(!confirm('Close this test? Students can no longer submit.'))return;
+  btn.disabled=true;
+  const r=await api(`/admin/tests/${tid}/deactivate`,{});
+  if(r.status==='ok'){showToast('Test closed');location.reload();}
+  else showToast(r.message||'Failed','error');
+}
+async function createTest(){
+  const code=document.getElementById('t_code').value.trim().toUpperCase();
+  if(!code){showToast('Passage code is required','error');return;}
+  const sel=document.getElementById('t_students');
+  const selected=Array.from(sel.selectedOptions).map(o=>o.value);
+  const allowed=selected.includes('ALL')?'ALL':selected.join(',');
+  const r=await api('/admin/tests/create',{
+    passage_code:code,
+    audio_link:document.getElementById('t_audio').value.trim(),
+    time_limit:parseInt(document.getElementById('t_time').value)||30,
+    expires_at:document.getElementById('t_expires').value,
+    allowed_students:allowed,
+    notes:document.getElementById('t_notes').value.trim(),
+  });
+  if(r.status==='ok'){
+    document.getElementById('createModal').classList.remove('open');
+    document.getElementById('testLinkDisplay').textContent=`${BASE_URL}/student/test/${r.test_id}`;
+    document.getElementById('linkModal').classList.add('open');
+  } else showToast(r.message||'Failed','error');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ student.Name }} — Student{% endblock %}
+{% block topbar_title %}{{ student.Name }}{% endblock %}
+{% block topbar_actions %}
+<a href="/admin/students" class="btn btn-ghost btn-sm">← Back</a>
+<a href="/admin/report/student/{{ student.StudentID }}" class="btn btn-ghost btn-sm">📊 Monthly Report</a>
+{% endblock %}
+{% block content %}
+<!-- Student info -->
+<div class="card mb-3" style="max-width:480px">
+  <div class="card-body">
+    <div class="flex gap-3" style="align-items:flex-start">
+      <div style="width:50px;height:50px;border-radius:50%;background:var(--acbg);border:1px solid var(--acbd);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:22px;color:var(--accent);flex-shrink:0">
+        {{ student.Name[0]|upper }}
+      </div>
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:20px">{{ student.Name }}</div>
+        <div class="text-sm text-muted mt-1">Mobile: {{ student.Mobile }} · Batch: {{ student.Batch or '—' }}</div>
+        <div class="mt-1">
+          {% set st=student.Approved|upper %}
+          {% if st=='YES' %}<span class="badge badge-pass">Active</span>
+          {% elif st=='PENDING' %}<span class="badge badge-pend">Pending</span>
+          {% else %}<span class="badge badge-fail">Rejected</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Attempts table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Attempts ({{ attempts|length }})</div>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Date</th><th>Passage</th><th>Error%</th><th>WPM</th><th>Full</th><th>Half</th><th>Omit</th><th>Mode</th><th></th></tr></thead>
+      <tbody>
+      {% for a in attempts %}
+      {% set e=a.ErrorPercent|float %}
+      <tr>
+        <td class="muted text-sm">{{ a.Date[:10] if a.Date else '—' }}</td>
+        <td><code>{{ a.PassageCode }}</code></td>
+        <td><span class="badge {% if e<=5 %}badge-pass{% elif e<=10 %}badge-warn{% else %}badge-fail{% endif %}">{{ e }}%</span></td>
+        <td class="muted">{{ a.WPM }}</td>
+        <td class="muted">{{ a.FullMistakes }}</td>
+        <td class="muted">{{ a.HalfMistakes }}</td>
+        <td class="muted">{{ a.Omissions }}</td>
+        <td><span class="badge {% if a.Mode=='Test' %}badge-gold{% else %}badge-neutral{% endif %}">{{ a.Mode or 'Practice' }}</span></td>
+        <td><a href="/admin/attempts/{{ a.AttemptID }}" class="btn btn-ghost btn-sm">Review</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3)">No attempts yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

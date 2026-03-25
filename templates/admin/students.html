@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+{% block title %}Students{% endblock %}
+{% block topbar_title %}Students{% endblock %}
+{% block topbar_actions %}
+<button class="btn btn-primary btn-sm" onclick="document.getElementById('addModal').classList.add('open')">
+  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Add Student
+</button>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">All Students ({{ students|length }})</div>
+    <input type="text" class="form-control" style="width:220px;padding:7px 12px;font-size:13px" placeholder="Search name or mobile…" oninput="filterStudents(this.value)">
+  </div>
+  <div class="tbl-wrap">
+    <table id="stuTable">
+      <thead><tr><th>Name</th><th>Mobile</th><th>Status</th><th>Batch</th><th>Joined</th><th></th></tr></thead>
+      <tbody>
+      {% for s in students %}
+      <tr data-search="{{ s.Name|lower }} {{ s.Mobile }}">
+        <td><strong>{{ s.Name }}</strong></td>
+        <td class="muted">{{ s.Mobile }}</td>
+        <td>
+          {% set st = s.Approved|upper %}
+          {% if st=='YES' %}<span class="badge badge-pass">Active</span>
+          {% elif st=='PENDING' %}<span class="badge badge-pend">Pending</span>
+          {% else %}<span class="badge badge-fail">Rejected</span>{% endif %}
+        </td>
+        <td class="muted">{{ s.Batch or '—' }}</td>
+        <td class="muted text-sm">{{ s.JoinedDate or '—' }}</td>
+        <td>
+          <div class="flex gap-2">
+            <a href="/admin/students/{{ s.StudentID }}" class="btn btn-ghost btn-sm">View</a>
+            {% if s.Approved|upper == 'PENDING' %}
+            <button class="btn btn-success btn-sm" onclick="approveStudent('{{ s.StudentID }}',this)">Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectStudent('{{ s.StudentID }}',this)">Reject</button>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3)">No students yet</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">Add Student</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" type="text" id="a_name" placeholder="Student name"></div>
+      <div class="form-group"><label class="form-label">Mobile</label><input class="form-control" type="tel" id="a_mobile" placeholder="10-digit mobile"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Password</label><input class="form-control" type="text" id="a_pw" placeholder="Set a password"></div>
+      <div class="form-group"><label class="form-label">Batch (optional)</label><input class="form-control" type="text" id="a_batch" placeholder="e.g. Batch 2024"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('addModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterStudents(q){
+  document.querySelectorAll('#stuTable tbody tr[data-search]').forEach(r=>{
+    r.style.display = r.dataset.search.includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+async function approveStudent(sid,btn){
+  btn.disabled=true;
+  const r=await api(`/admin/students/${sid}/approve`,{});
+  if(r.status==='ok'){showToast('Approved!');location.reload();}
+  else showToast(r.message||'Failed','error');
+}
+async function rejectStudent(sid,btn){
+  if(!confirm('Reject this student?'))return;
+  btn.disabled=true;
+  const r=await api(`/admin/students/${sid}/reject`,{});
+  if(r.status==='ok'){showToast('Rejected');location.reload();}
+  else showToast(r.message||'Failed','error');
+}
+async function addStudent(){
+  const r=await api('/admin/students/create',{
+    name:document.getElementById('a_name').value.trim(),
+    mobile:document.getElementById('a_mobile').value.trim(),
+    password:document.getElementById('a_pw').value.trim(),
+    batch:document.getElementById('a_batch').value.trim(),
+  });
+  if(r.status==='ok'){showToast('Student added!');setTimeout(()=>location.reload(),1000);}
+  else showToast(r.message||'Failed','error');
+}
+</script>
+{% endblock %}
